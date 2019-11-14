@@ -1,0 +1,1 @@
+使用tensorflow的API重写**静态**RNN模型
