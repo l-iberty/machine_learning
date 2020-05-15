@@ -22,7 +22,7 @@ net_arch = {
     "n_z": 20,
     "n_input": 784,  # 28 * 28
 }
-lr = 0.001
+lr = 5e-5
 batch_size = 100
 device = "cpu"
 model_save_path = "model_cpu.pt"

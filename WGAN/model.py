@@ -49,7 +49,7 @@ class Discriminator(nn.Module):
 
 
 class WGAN(nn.Module):
-    def __init__(self, net_arch, lr=0.001, batch_size=100, device="cpu"):
+    def __init__(self, net_arch, lr=5e-5, batch_size=100, device="cpu"):
         super(WGAN, self).__init__()
 
         self.net_arch = net_arch
