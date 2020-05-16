@@ -30,6 +30,7 @@ batch_size = 100
 device = "cpu"
 model_save_path = "model_cpu.pt"
 model_2d_save_path = "model_2d_cpu.pt"
+gen_images_path="gen_images.pt"
 
 vae_model = VAE(net_arch, lr, batch_size, device)
 print(vae_model)
@@ -54,8 +55,8 @@ if not os.path.exists(model_save_path):
     torch.save(vae_model.state_dict(), model_save_path)
     print(f"vae_model saved in {model_save_path}")
 else:
+    print(f"load vae_model {model_save_path}")
     vae_model.load_state_dict(torch.load(model_save_path))
-    print(f"vae_model loaded from {model_save_path}")
 
 x, test_labels = next(iter(test_loader))
 x = x.squeeze()
@@ -67,7 +68,7 @@ x_reconstr = x_reconstr.cpu().detach().numpy()
 
 """ check reconstruction
 """
-plt.figure(figsize=(4, 6))
+plt.figure(figsize=(6, 10))
 rows, cols = 5, 2
 for i in range(rows):
     plt.subplot(rows, cols, 2 * i + 1)
@@ -80,6 +81,14 @@ for i in range(rows):
     plt.colorbar()
     plt.tight_layout()
 plt.show()
+
+""" check generation
+"""
+vae_model.eval()
+noise = torch.randn(batch_size, net_arch["n_z"], device=device)
+images = vae_model.generate(noise).cpu().detach()
+torch.save(images, gen_images_path)
+print(f"{gen_images_path} saved")
 
 """ check latent space, in order to do that, we need to train another VAE model with n_z=2
 """
@@ -105,13 +114,13 @@ if not os.path.exists(model_2d_save_path):
     torch.save(vae_model_2d.state_dict(), model_2d_save_path)
     print(f"vae_model saved in {model_2d_save_path}")
 else:
+    print(f"load vae_model {model_2d_save_path}")
     vae_model_2d.load_state_dict(torch.load(model_2d_save_path))
-    print(f"vae_model_2d loaded from {model_2d_save_path}")
 
 nx = ny = 20
 x_values = np.linspace(-3, 3, nx)
-y_values = np.linspace(-3, 3, ny)
-plt.figure(figsize=(6, 6))
+y_values = np.linspace(-3, 3, nx)
+plt.figure(figsize=(8, 10))
 canvas = np.zeros(shape=(28 * nx, 28 * ny))
 for i, xi in enumerate(x_values):
     for j, yj in enumerate(y_values):
@@ -119,8 +128,6 @@ for i, xi in enumerate(x_values):
         x_mean = vae_model_2d.generate(torch.from_numpy(z_mu).to(device)).cpu().detach().numpy()
         canvas[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28] = x_mean[0].reshape(28, 28)
 
-plt.xticks([])
-plt.yticks([])
 plt.imshow(canvas, origin="upper", cmap="Greys_r")
 plt.tight_layout()
 plt.show()
@@ -135,3 +142,5 @@ plt.scatter(x=z_mu[:, 0], y=z_mu[:, 1], c=test_labels.numpy())
 plt.colorbar()
 plt.grid()
 plt.show()
+
+
